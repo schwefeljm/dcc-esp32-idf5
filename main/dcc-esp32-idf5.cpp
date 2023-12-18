@@ -3,7 +3,7 @@
 
 extern "C" void app_main() {
   initArduino();
-  DCCRMT rmt = DCCRMT(GPIO_NUM_17, true);
+  DCCRMT rmt = DCCRMT(GPIO_NUM_1, true);
   while (1) {
 
     vTaskDelay(500);
