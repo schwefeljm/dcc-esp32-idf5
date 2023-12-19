@@ -75,7 +75,7 @@ void DCCRMT::setupRmt(gpio_num_t pin, bool isMain) {
       .clk_src = RMT_CLK_SRC_DEFAULT,  // select source clock
       .resolution_hz = DCC_RMT_CLOCK_FREQUENCY,
       .mem_block_symbols = SOC_RMT_MEM_WORDS_PER_CHANNEL,
-      .trans_queue_depth = (size_t)(isMain ? DCC_IDLE_TIMER_QUEUE_DEPTH_MAIN : DCC_IDLE_TIMER_QUEUE_DEPTH_PROG),
+      .trans_queue_depth = (size_t)(isMain ? DCC_RMT_TX_QUEUE_DEPTH_MAIN : DCC_RMT_TX_QUEUE_DEPTH_PROG),
       .flags =
           {
               .invert_out = DCC_SIGNAL_OUT_INVERT,
@@ -147,7 +147,8 @@ DCCRMT::DCCRMT(gpio_num_t pin, bool isMain) {
   /////////////////////////////////////////////////////////////
   xTaskBuffer = (StaticTask_t)calloc(1, sizeof(StaticTask_t));
   xStack = (StackType_t*)calloc(1, sizeof(StackType_t) * 2048);
-  xTaskCreateStatic(&taskCallback, "DCC Transmit", 2048, rmtTxData, DCC_RMT_TX_TASK_PRI, xStack, &xTaskBuffer);
+  xTaskCreateStatic(&taskCallback, isMain ? DCC_IDLE_TIMER_NAME_MAIN : DCC_IDLE_TIMER_NAME_PROG, 2048, rmtTxData,
+                    DCC_RMT_TX_TASK_PRI, xStack, &xTaskBuffer);
   //////////////////////////////////////////////////////////////
 
   ESP_LOGD(TAG, "DCC Task Finished");
