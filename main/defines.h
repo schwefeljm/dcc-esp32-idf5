@@ -17,6 +17,7 @@ static const char* TAG = "DCC-RMT";
 #define DCC_PREAMBLE_BITS_PROG 22
 
 #define DCC_RMT_TX_TASK_PRI 5
+#define DCC_RMT_TASK_PIN_CORE 1
 
 // NMRA DCC DCC Extended Packet Formats DRAFT (as of 2023-11-25) - S-9.2.1
 // https://www.nmra.org/sites/default/files/standards/sandrp/pdf/s-9.2.1_dcc_extended_packet_formats.pdf

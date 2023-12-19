@@ -87,7 +87,6 @@ void DCCRMT::setupRmt(gpio_num_t pin, bool isMain) {
 
   };
   ESP_ERROR_CHECK(rmt_new_tx_channel(&dcc_tx_chan_config, (&rmtTxData->tx_channel)));
-  ESP_LOGD(TAG, "Install RMT encoder");
   rmtTxData->dcc_encoder = NULL;
   dcc_packet_encoder_config_t dcc_encoder_config = {.resolution = DCC_RMT_CLOCK_FREQUENCY};
   ESP_ERROR_CHECK(rmt_new_dcc_packet_encoder(&dcc_encoder_config, &(rmtTxData->dcc_encoder)));
@@ -137,21 +136,18 @@ DCCRMT::DCCRMT(gpio_num_t pin, bool isMain) {
   // Init class var
   rmtTxData = (event_callback_struct_t*)calloc(1, sizeof(event_callback_struct_t));
   rmtTxData->dccRmtPacket = (dcc_rmt_symbols_t*)calloc(1, sizeof(dcc_rmt_symbols_t));
+
+  // Setup the RMT TX peripheral
   setupRmt(pin, isMain);
 
   // Create initial entry for RMT TX.
   isMain ? SendSimplePacket(0xFF, 0x00) : SendSimplePacket(0x00, 0x00);
 
-  /////////////////////////////////////////////////////////////
-  //          Task Creation
-  /////////////////////////////////////////////////////////////
+  // Task Creation
   xTaskBuffer = (StaticTask_t)calloc(1, sizeof(StaticTask_t));
   xStack = (StackType_t*)calloc(1, sizeof(StackType_t) * 2048);
-  xTaskCreateStatic(&taskCallback, isMain ? DCC_IDLE_TIMER_NAME_MAIN : DCC_IDLE_TIMER_NAME_PROG, 2048, rmtTxData,
-                    DCC_RMT_TX_TASK_PRI, xStack, &xTaskBuffer);
-  //////////////////////////////////////////////////////////////
-
-  ESP_LOGD(TAG, "DCC Task Finished");
+  xTaskCreateStaticPinnedToCore(&taskCallback, isMain ? DCC_IDLE_TIMER_NAME_MAIN : DCC_IDLE_TIMER_NAME_PROG, 2048, rmtTxData,
+                                DCC_RMT_TX_TASK_PRI, xStack, &xTaskBuffer, DCC_RMT_TASK_PIN_CORE);
 }
 
 void DCCRMT::SendSimplePacket(uint8_t Address, uint8_t Command) {
